@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>حجز الغرفة - وكالة الدواحي</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-light lang-ar" id="pageBody">
+
+<div class="navbar">
+  <div class="brand">وكالة الدواحي ✦ <span>للسفر والسياحة</span></div>
+  <div class="nav-links">
+    <a href="my-bookings.html">حجوزاتي</a>
+    <a href="home.html">شركات الطيران</a>
+    <span style="color:var(--sand)" id="navUsername">...</span>
+    <a href="#" class="btn small danger" onclick="doLogout(); return false;">خروج</a>
+    <span class="nav-controls">
+      <button type="button" class="theme-btn" onclick="setTheme('light')">☀️</button>
+      <button type="button" class="theme-btn" onclick="setTheme('dark')">🌙</button>
+    </span>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="form-box card glow-form">
+    <h2 class="center">حجز الغرفة</h2>
+    <p class="subtitle center" id="roomSummary">...</p>
+    <form onsubmit="return handleBook(event)">
+      <label>تاريخ الوصول</label>
+      <input type="date" name="checkin" id="checkinDate" required>
+      <label>وقت الوصول (تسجيل الدخول)</label>
+      <input type="time" name="checkinTime" id="checkinTime" value="14:00" required>
+      <label>تاريخ المغادرة</label>
+      <input type="date" name="checkout" id="checkoutDate" required>
+      <label>وقت المغادرة (تسجيل الخروج)</label>
+      <input type="time" name="checkoutTime" id="checkoutTime" value="12:00" required>
+      <p class="subtitle" id="totalPreview" style="margin-top:14px"></p>
+      <div class="center" style="margin-top:20px">
+        <button class="btn" type="submit" style="width:100%">تأكيد حجز الغرفة</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="footer-note">وكالة الدواحي للسفر والسياحة — رحلتك تبدأ من هنا</div>
+
+<script src="theme.js"></script>
+<script src="auth.js"></script>
+<script src="bookings.js"></script>
+<script src="hotels-data.js"></script>
+<script>
+const params = new URLSearchParams(window.location.search);
+const hotelId = HOTELS[params.get('hotel')] ? params.get('hotel') : DEFAULT_HOTEL_ID;
+const hotel = HOTELS[hotelId];
+const roomType = params.get('room');
+const room = hotel.rooms.find(r => r.type === roomType) || hotel.rooms[1]; // افتراضي: مزدوجة
+
+document.getElementById('roomSummary').textContent =
+  hotel.name + ' (' + starsToText(hotel.stars) + ') — ' + room.label +
+  ' — ' + room.price.toLocaleString('en-US') + ' ج.س / لليلة';
+
+const checkinDateEl = document.getElementById('checkinDate');
+const checkoutDateEl = document.getElementById('checkoutDate');
+const totalPreview = document.getElementById('totalPreview');
+
+function nightsBetween(inDate, outDate) {
+  const ms = new Date(outDate) - new Date(inDate);
+  return Math.max(1, Math.round(ms / 86400000));
+}
+
+function updatePreview() {
+  if (!checkinDateEl.value || !checkoutDateEl.value) { totalPreview.textContent = ''; return; }
+  if (new Date(checkoutDateEl.value) <= new Date(checkinDateEl.value)) {
+    totalPreview.textContent = 'تاريخ المغادرة يجب أن يكون بعد تاريخ الوصول';
+    return;
+  }
+  const nights = nightsBetween(checkinDateEl.value, checkoutDateEl.value);
+  const total = nights * room.price;
+  totalPreview.innerHTML = 'عدد الليالي: <b>' + nights + '</b> — الإجمالي: <span class="price">' +
+    total.toLocaleString('en-US') + ' ج.س</span>';
+}
+checkinDateEl.addEventListener('change', updatePreview);
+checkoutDateEl.addEventListener('change', updatePreview);
+
+function handleBook(e) {
+  e.preventDefault();
+  const form = e.target;
+  const checkin = form.checkin.value;
+  const checkinTime = form.checkinTime.value;
+  const checkout = form.checkout.value;
+  const checkoutTime = form.checkoutTime.value;
+  const btn = form.querySelector('button[type=submit]');
+
+  if (new Date(checkout) <= new Date(checkin)) {
+    alert('تاريخ المغادرة يجب أن يكون بعد تاريخ الوصول');
+    return false;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'جارٍ الحجز...';
+
+  const nights = nightsBetween(checkin, checkout);
+  const total = nights * room.price;
+
+  const code = addBooking({
+    kind: 'hotel',
+    title: hotel.name + ' — ' + room.label,
+    details: 'تسجيل الدخول: ' + checkin + ' الساعة ' + checkinTime +
+      ' / تسجيل الخروج: ' + checkout + ' الساعة ' + checkoutTime +
+      ' — ' + nights + ' ليالٍ',
+    price: total
+  });
+  window.location.href = 'booking-detail.html?code=' + encodeURIComponent(code);
+
+  return false;
+}
+</script>
+
+<script>
+requireLogin();
+</script>
+</body>
+</html>

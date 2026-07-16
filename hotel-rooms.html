@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>غرف الفندق - وكالة الدواحي</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-light lang-ar" id="pageBody">
+
+<div class="navbar">
+  <div class="brand">وكالة الدواحي ✦ <span>للسفر والسياحة</span></div>
+  <div class="nav-links">
+    <a href="my-bookings.html">حجوزاتي</a>
+    <a href="home.html">شركات الطيران</a>
+    <span style="color:var(--sand)" id="navUsername">...</span>
+    <a href="#" class="btn small danger" onclick="doLogout(); return false;">خروج</a>
+    <span class="nav-controls">
+      <button type="button" class="theme-btn" onclick="setTheme('light')">☀️</button>
+      <button type="button" class="theme-btn" onclick="setTheme('dark')">🌙</button>
+    </span>
+  </div>
+</div>
+
+<div class="wrap">
+  <h1 id="hotelName">...</h1>
+  <p class="subtitle" id="hotelStars"></p>
+  <p class="subtitle" id="hotelCity"></p>
+
+  <div id="roomsList"></div>
+</div>
+
+<div class="footer-note">وكالة الدواحي للسفر والسياحة — رحلتك تبدأ من هنا</div>
+
+<script src="theme.js"></script>
+<script src="auth.js"></script>
+<script src="hotels-data.js"></script>
+<script>
+requireLogin();
+
+const params = new URLSearchParams(window.location.search);
+const hotelId = params.get('hotel') || DEFAULT_HOTEL_ID;
+const hotel = getHotel(hotelId);
+const actualId = HOTELS[hotelId] ? hotelId : DEFAULT_HOTEL_ID;
+
+document.getElementById('hotelName').innerHTML =
+  hotel.name + ' <span class="stars">' + starsToText(hotel.stars) + '</span>';
+document.getElementById('hotelStars').textContent = hotel.stars + ' نجوم';
+document.getElementById('hotelCity').textContent = hotel.city;
+
+document.getElementById('roomsList').innerHTML = hotel.rooms.map(r => `
+  <div class="card">
+    <h3>${r.label}</h3>
+    <p class="subtitle">السعة: ${r.capacity}</p>
+    <p class="price">${r.price.toLocaleString('en-US')} ج.س / لليلة</p>
+    <a class="btn small" href="book-room.html?hotel=${encodeURIComponent(actualId)}&room=${encodeURIComponent(r.type)}">حجز الغرفة</a>
+  </div>
+`).join('');
+</script>
+</body>
+</html>

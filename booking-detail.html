@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>تفاصيل الحجز - وكالة الدواحي</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-light lang-ar" id="pageBody">
+
+<div class="navbar">
+  <div class="brand">وكالة الدواحي ✦ <span>للسفر والسياحة</span></div>
+  <div class="nav-links">
+    <a href="my-bookings.html">حجوزاتي</a>
+    <a href="home.html">شركات الطيران</a>
+    <span style="color:var(--sand)" id="navUsername">...</span>
+    <a href="#" class="btn small danger" onclick="doLogout(); return false;">خروج</a>
+    <span class="nav-controls">
+      <button type="button" class="theme-btn" onclick="setTheme('light')">☀️</button>
+      <button type="button" class="theme-btn" onclick="setTheme('dark')">🌙</button>
+    </span>
+  </div>
+</div>
+
+<div class="wrap">
+  <h1>تفاصيل الحجز — <span id="bkCode">...</span> <span class="badge ok" id="bkStatus"></span></h1>
+
+  <div class="card" id="bkCard">
+    <p>جارٍ التحميل...</p>
+  </div>
+</div>
+
+<div class="footer-note">وكالة الدواحي للسفر والسياحة — رحلتك تبدأ من هنا</div>
+
+<script src="theme.js"></script>
+<script src="auth.js"></script>
+<script src="bookings.js"></script>
+
+<script>
+requireLogin();
+
+const params = new URLSearchParams(window.location.search);
+const bookingCode = params.get('code');
+const card = document.getElementById('bkCard');
+
+if (!bookingCode) {
+  card.innerHTML = '<p>لا يوجد رقم حجز محدد. <a href="my-bookings.html">اذهب إلى حجوزاتي</a></p>';
+} else {
+  loadBooking();
+}
+
+function loadBooking() {
+  const b = getBookingByCode(bookingCode);
+  if (!b) {
+    card.innerHTML = '<p>الحجز غير موجود</p>';
+    return;
+  }
+  document.getElementById('bkCode').textContent = b.code;
+  const statusBadge = document.getElementById('bkStatus');
+  statusBadge.textContent = b.status;
+  statusBadge.className = 'badge ' + (b.status === 'ملغاة' ? 'cancel' : 'ok');
+
+  card.innerHTML = `
+    <h3>${b.kind === 'flight' ? 'تفاصيل الرحلة' : 'حجز الفندق'}</h3>
+    <p>${b.title}<br>${b.details || ''}<br>
+    السعر: <span class="price">${b.price.toLocaleString('en-US')} ج.س</span></p>
+    <a class="btn" href="#" onclick="alert('في النسخة الحقيقية سيتم تحميل ملف PDF للتذكرة'); return false;">تحميل التذكرة PDF</a>
+    <a class="btn secondary" href="my-bookings.html">حجوزاتي</a>
+    ${b.status !== 'ملغاة' ? '<button class="btn danger" onclick="cancelBooking()">إلغاء الحجز</button>' : ''}
+  `;
+}
+
+function cancelBooking() {
+  if (!confirm('هل أنت متأكد من الإلغاء؟')) return;
+  cancelBookingByCode(bookingCode);
+  loadBooking();
+}
+</script>
+</body>
+</html>
