@@ -1,32 +1,26 @@
 /* ======================================================================
-   وكالة جامعة البطانة للسفر والسياحة — تطبيق ملف واحد (SPA)
+   وكالة جامعة البطانة للسفر والسياحة — التطبيق الكامل
    ====================================================================== */
 
-/* ---------- المفتاح العام للبيانات ---------- */
+/* ---------- إدارة الحالة ---------- */
 const STATE_KEY = 'batana_agency_state';
 
 function getState() {
-  let raw = null;
   try {
-    raw = localStorage.getItem(STATE_KEY);
-  } catch (e) {
-    console.warn('تعذر الوصول إلى localStorage، سيتم استخدام تخزين مؤقت في الذاكرة:', e);
-  }
-  try {
+    const raw = localStorage.getItem(STATE_KEY);
     return raw ? JSON.parse(raw) : { users: [], bookings: [], recovery: [], visits: 0, session: null };
   } catch (e) {
-    console.warn('بيانات مخزّنة تالفة، تمت إعادة التهيئة:', e);
     return { users: [], bookings: [], recovery: [], visits: 0, session: null };
   }
 }
+
 function saveState(state) {
   try {
     localStorage.setItem(STATE_KEY, JSON.stringify(state));
-  } catch (e) {
-    console.warn('تعذر حفظ البيانات في localStorage:', e);
-  }
+  } catch (e) {}
   return state;
 }
+
 function loadState() {
   const state = getState();
   state.visits = (state.visits || 0) + 1;
@@ -35,6 +29,74 @@ function loadState() {
 }
 
 let state = loadState();
+
+/* ---------- دوال السمات واللغة ---------- */
+function setTheme(theme) {
+  document.body.classList.remove('theme-light', 'theme-dark');
+  document.body.classList.add('theme-' + theme);
+}
+
+let currentLang = 'ar';
+
+const TR = {
+  brand: {ar:'وكالة جامعة البطانة ✦', en:'Batana Agency ✦'},
+  subBrand: {ar:'للسفر والسياحة', en:'Travel & Tourism'},
+  login: {ar:'تسجيل الدخول', en:'Login'},
+  welcome: {ar:'وكالة جامعة البطانة للسفر والسياحة', en:'Batana Travel & Tourism Agency'},
+  titleRegister: {ar:'إنشاء حساب جديد', en:'Create New Account'},
+  fullname: {ar:'الاسم الثلاثي', en:'Full Name (3 parts)'},
+  phone: {ar:'رقم الهاتف', en:'Phone Number'},
+  email: {ar:'البريد الإلكتروني', en:'Email'},
+  password: {ar:'كلمة المرور', en:'Password'},
+  confirmPassword: {ar:'إعادة كلمة المرور', en:'Confirm Password'},
+  loginButton: {ar:'تسجيل الدخول', en:'Login'},
+  btnRegister: {ar:'إنشاء الحساب', en:'Create Account'},
+  haveAccount: {ar:'لديك حساب بالفعل؟', en:'Already have an account?'},
+  noAccount: {ar:'ليس لديك حساب؟', en:"Don't have an account?"},
+  registerLink: {ar:'إنشاء حساب جديد', en:'Create new account'},
+  footer: {ar:'وكالة جامعة البطانة للسفر والسياحة — رحلتك تبدأ من هنا', en:'Batana Travel & Tourism — Your journey starts here'},
+  errName: {ar:'يرجى كتابة الاسم الثلاثي كاملاً (ثلاث كلمات على الأقل)', en:'Please enter your full name (at least 3 parts)'},
+  errPhone: {ar:'رقم الهاتف غير صحيح', en:'Invalid phone number'},
+  errEmail: {ar:'البريد الإلكتروني غير صحيح', en:'Invalid email address'},
+  errPasswordShort: {ar:'كلمة المرور يجب ألا تقل عن 6 أحرف', en:'Password must be at least 6 characters'},
+  errPasswordMatch: {ar:'كلمة المرور وإعادة كلمة المرور غير متطابقتين', en:'Passwords do not match'},
+  errExists: {ar:'هذا البريد الإلكتروني مسجّل بالفعل، جرّب تسجيل الدخول', en:'This email is already registered, try logging in'},
+  errLogin: {ar:'البريد الإلكتروني أو كلمة المرور غير صحيحة', en:'Incorrect email or password'},
+};
+
+function setLang(lang) {
+  currentLang = lang;
+  const body = document.getElementById('pageBody');
+  const html = document.getElementById('htmlRoot');
+  body.classList.remove('lang-ar', 'lang-en');
+  body.classList.add('lang-' + lang);
+  html.setAttribute('lang', lang);
+  html.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+
+  const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  const brandText = document.getElementById('brandText');
+  if (brandText && brandText.childNodes[0]) brandText.childNodes[0].textContent = TR.brand[lang] + ' ';
+  setText('subBrandText', TR.subBrand[lang]);
+  setText('loginNavLabel', TR.login[lang]);
+  setText('welcomeText', TR.welcome[lang]);
+  setText('footerText', TR.footer[lang]);
+  document.getElementById('pageTitle').textContent = TR.welcome[lang];
+
+  setText('titleLogin', TR.login[lang]);
+  setText('labelEmail', TR.email[lang]);
+  setText('labelPassword', TR.password[lang]);
+  setText('btnLogin', TR.loginButton[lang]);
+  setText('noAccountText', TR.noAccount[lang]);
+  setText('registerLink', TR.registerLink[lang]);
+
+  setText('titleRegister', TR.titleRegister[lang]);
+  setText('labelFullname', TR.fullname[lang]);
+  setText('labelPhone', TR.phone[lang]);
+  setText('labelConfirmPassword', TR.confirmPassword[lang]);
+  setText('btnRegister', TR.btnRegister[lang]);
+  setText('haveAccountText', TR.haveAccount[lang]);
+  setText('loginLink', TR.login[lang]);
+}
 
 /* ---------- بيانات الفنادق ---------- */
 const HOTELS = {
@@ -150,11 +212,7 @@ const SELECT_CLASS_DATA = {
     title: 'تكسي محلي — داخل السودان',
     subtitle: 'اختر الدرجة المناسبة لرحلتك',
     kind: 'taxi',
-    classes: [
-      {name:'VIP', price:12000},
-      {name:'مريح', price:8000},
-      {name:'اقتصادي', price:5500}
-    ],
+    classes: [{name:'VIP', price:12000},{name:'مريح', price:8000},{name:'اقتصادي', price:5500}],
     bookTitlePrefix: 'رحلة تكسي محلية — ',
     bookDetails: 'تكسي محلي داخل السودان',
     confirmLabel: 'تأكيد الحجز'
@@ -163,10 +221,7 @@ const SELECT_CLASS_DATA = {
     title: 'باصات محلية — داخل السودان',
     subtitle: 'اختر الدرجة المناسبة لرحلتك',
     kind: 'bus',
-    classes: [
-      {name:'ممتاز VIP', price:38000},
-      {name:'عادي', price:28000}
-    ],
+    classes: [{name:'ممتاز VIP', price:38000},{name:'عادي', price:28000}],
     bookTitlePrefix: 'رحلة باص محلية — ',
     bookDetails: 'باصات محلية داخل السودان',
     confirmLabel: 'تأكيد الحجز وإصدار التذكرة'
@@ -175,10 +230,7 @@ const SELECT_CLASS_DATA = {
     title: 'حافلات محلية — خدمة ممتازة',
     subtitle: 'اختر الدرجة المناسبة لرحلتك',
     kind: 'bus',
-    classes: [
-      {name:'نوم (Sleeper)', price:55000},
-      {name:'ممتاز VIP', price:38000}
-    ],
+    classes: [{name:'نوم (Sleeper)', price:55000},{name:'ممتاز VIP', price:38000}],
     bookTitlePrefix: 'رحلة حافلة محلية — ',
     bookDetails: 'حافلات ممتازة داخل السودان',
     confirmLabel: 'تأكيد الحجز وإصدار التذكرة'
@@ -187,12 +239,7 @@ const SELECT_CLASS_DATA = {
     title: 'رحلات جوية محلية',
     subtitle: 'اختر الدرجة المناسبة لرحلتك',
     kind: 'flight',
-    classes: [
-      {name:'الدرجة الأولى', price:120000},
-      {name:'درجة رجال الأعمال والمستثمرين', price:85000},
-      {name:'الدرجة الثانية', price:60000},
-      {name:'الدرجة العادية', price:45000}
-    ],
+    classes: [{name:'الدرجة الأولى', price:120000},{name:'درجة رجال الأعمال والمستثمرين', price:85000},{name:'الدرجة الثانية', price:60000},{name:'الدرجة العادية', price:45000}],
     bookTitlePrefix: 'رحلة جوية محلية — ',
     bookDetails: 'طيران محلي داخل السودان',
     confirmLabel: 'تأكيد الحجز وإصدار التذكرة'
@@ -201,11 +248,7 @@ const SELECT_CLASS_DATA = {
     title: 'باصات دولية',
     subtitle: 'اختر الدرجة المناسبة لرحلتك',
     kind: 'bus',
-    classes: [
-      {name:'نوم (Sleeper)', price:55000},
-      {name:'ممتاز VIP', price:38000},
-      {name:'عادي', price:28000}
-    ],
+    classes: [{name:'نوم (Sleeper)', price:55000},{name:'ممتاز VIP', price:38000},{name:'عادي', price:28000}],
     bookTitlePrefix: 'رحلة باص دولية — ',
     bookDetails: 'باصات دولية عبر الحدود',
     confirmLabel: 'تأكيد الحجز وإصدار التذكرة'
@@ -214,12 +257,7 @@ const SELECT_CLASS_DATA = {
     title: 'رحلات جوية دولية',
     subtitle: 'اختر الدرجة المناسبة لرحلتك',
     kind: 'flight',
-    classes: [
-      {name:'الدرجة الأولى', price:320000},
-      {name:'درجة رجال الأعمال والمستثمرين', price:210000},
-      {name:'الدرجة الثانية', price:140000},
-      {name:'الدرجة العادية', price:95000}
-    ],
+    classes: [{name:'الدرجة الأولى', price:320000},{name:'درجة رجال الأعمال والمستثمرين', price:210000},{name:'الدرجة الثانية', price:140000},{name:'الدرجة العادية', price:95000}],
     bookTitlePrefix: 'رحلة جوية دولية — ',
     bookDetails: 'طيران دولي',
     confirmLabel: 'تأكيد الحجز وإصدار التذكرة'
@@ -228,43 +266,37 @@ const SELECT_CLASS_DATA = {
     title: 'بواخر دولية',
     subtitle: 'اختر الدرجة المناسبة لرحلتك',
     kind: 'boat',
-    classes: [
-      {name:'كابينة VIP', price:95000},
-      {name:'كابينة عادية', price:70000},
-      {name:'درجة عامة', price:55000}
-    ],
+    classes: [{name:'كابينة VIP', price:95000},{name:'كابينة عادية', price:70000},{name:'درجة عامة', price:55000}],
     bookTitlePrefix: 'رحلة بحرية دولية — ',
     bookDetails: 'بواخر دولية',
     confirmLabel: 'تأكيد الحجز وإصدار التذكرة'
   }
 };
 
-/* ---------- الترجمة ---------- */
-const TR = {
-  brand: {ar:'وكالة جامعة البطانة ✦', en:'Batana Agency ✦'},
-  subBrand: {ar:'للسفر والسياحة', en:'Travel & Tourism'},
-  login: {ar:'تسجيل الدخول', en:'Login'},
-  welcome: {ar:'وكالة جامعة البطانة للسفر والسياحة', en:'Batana Travel & Tourism Agency'},
-  titleRegister: {ar:'إنشاء حساب جديد', en:'Create New Account'},
-  fullname: {ar:'الاسم الثلاثي', en:'Full Name (3 parts)'},
-  phone: {ar:'رقم الهاتف', en:'Phone Number'},
-  email: {ar:'البريد الإلكتروني', en:'Email'},
-  password: {ar:'كلمة المرور', en:'Password'},
-  confirmPassword: {ar:'إعادة كلمة المرور', en:'Confirm Password'},
-  loginButton: {ar:'تسجيل الدخول', en:'Login'},
-  btnRegister: {ar:'إنشاء الحساب', en:'Create Account'},
-  haveAccount: {ar:'لديك حساب بالفعل؟', en:'Already have an account?'},
-  noAccount: {ar:'ليس لديك حساب؟', en:"Don't have an account?"},
-  registerLink: {ar:'إنشاء حساب جديد', en:'Create new account'},
-  footer: {ar:'وكالة جامعة البطانة للسفر والسياحة — رحلتك تبدأ من هنا', en:'Batana Travel & Tourism — Your journey starts here'},
-  errName: {ar:'يرجى كتابة الاسم الثلاثي كاملاً (ثلاث كلمات على الأقل)', en:'Please enter your full name (at least 3 parts)'},
-  errPhone: {ar:'رقم الهاتف غير صحيح', en:'Invalid phone number'},
-  errEmail: {ar:'البريد الإلكتروني غير صحيح', en:'Invalid email address'},
-  errPasswordShort: {ar:'كلمة المرور يجب ألا تقل عن 6 أحرف', en:'Password must be at least 6 characters'},
-  errPasswordMatch: {ar:'كلمة المرور وإعادة كلمة المرور غير متطابقتين', en:'Passwords do not match'},
-  errExists: {ar:'هذا البريد الإلكتروني مسجّل بالفعل، جرّب تسجيل الدخول', en:'This email is already registered, try logging in'},
-  errLogin: {ar:'البريد الإلكتروني أو كلمة المرور غير صحيحة', en:'Incorrect email or password'},
-};
+/* ---------- دوال مساعدة ---------- */
+function genBookingCode() { return "BTN-" + Math.random().toString(16).slice(2, 12).toUpperCase(); }
+function nightsBetween(inDate, outDate) {
+  const ms = new Date(outDate) - new Date(inDate);
+  return Math.max(1, Math.round(ms / 86400000));
+}
+function normalizePhone(phone) {
+  let p = String(phone).replace(/\D/g, '');
+  if (p.startsWith('0')) p = '249' + p.slice(1);
+  return p;
+}
+function footerNote() {
+  return `<div class="footer-note">وكالة جامعة البطانة للسفر والسياحة — رحلتك تبدأ من هنا</div>`;
+}
+function tripRow(t, kindKey) {
+  return `<div class="flight-row">
+    <div>
+      <div class="route">${t.route}</div>
+      <div class="subtitle">${t.subtitle}</div>
+    </div>
+    <div class="price">${t.price.toLocaleString('en-US')} ج.س</div>
+    <a class="btn small" href="#/select-class?kind=${kindKey}">اختيار الدرجة</a>
+  </div>`;
+}
 
 /* ---------- إدارة المصادقة ---------- */
 function findUserByEmail(email) {
@@ -292,7 +324,6 @@ function doRegister(fullname, phone, email, password, confirmPassword) {
 function doLogin(email, password, role) {
   email = (email || "").trim().toLowerCase();
   const user = findUserByEmail(email);
-  // المدير الافتراضي
   if (role === 'admin' && email === 'admin@batana.local' && password === 'ChangeMe123!') {
     state.session = { username: 'مدير النظام', email, role: 'admin' };
     saveState(state);
@@ -314,56 +345,27 @@ function doLogout() {
   location.hash = '#/login';
 }
 
-function setTheme(theme) {
-  document.body.classList.remove('theme-light', 'theme-dark');
-  document.body.classList.add('theme-' + theme);
+function addRecoveryRequest(name, phone, email) {
+  state.recovery = state.recovery || [];
+  state.recovery.push({ name, phone, email, status: 'قيد المراجعة', created_at: new Date().toISOString() });
+  saveState(state);
+  return true;
 }
 
-let currentLang = 'ar';
-
-function setLang(lang) {
-  currentLang = lang;
-  const body = document.getElementById('pageBody');
-  const html = document.getElementById('htmlRoot');
-  body.classList.remove('lang-ar', 'lang-en');
-  body.classList.add('lang-' + lang);
-  html.setAttribute('lang', lang);
-  html.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
-
-  const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-  const brandText = document.getElementById('brandText');
-  if (brandText && brandText.childNodes[0]) brandText.childNodes[0].textContent = TR.brand[lang] + ' ';
-  setText('subBrandText', TR.subBrand[lang]);
-  setText('loginNavLabel', TR.login[lang]);
-  setText('welcomeText', TR.welcome[lang]);
-  setText('footerText', TR.footer[lang]);
-  document.getElementById('pageTitle').textContent = TR.welcome[lang];
-
-  setText('titleLogin', TR.login[lang]);
-  setText('labelEmail', TR.email[lang]);
-  setText('labelPassword', TR.password[lang]);
-  setText('btnLogin', TR.loginButton[lang]);
-  setText('noAccountText', TR.noAccount[lang]);
-  setText('registerLink', TR.registerLink[lang]);
-
-  setText('titleRegister', TR.titleRegister[lang]);
-  setText('labelFullname', TR.fullname[lang]);
-  setText('labelPhone', TR.phone[lang]);
-  setText('labelConfirmPassword', TR.confirmPassword[lang]);
-  setText('btnRegister', TR.btnRegister[lang]);
-  setText('haveAccountText', TR.haveAccount[lang]);
-  setText('loginLink', TR.login[lang]);
-}
-
-function normalizePhone(phone) {
-  let p = String(phone).replace(/\D/g, '');
-  if (p.startsWith('0')) p = '249' + p.slice(1);
-  return p;
+function approveRecovery(index) {
+  const r = (state.recovery || [])[index];
+  if (!r) return false;
+  r.status = 'مقبول';
+  r.tempPassword = 'TEMP-' + Math.random().toString(36).slice(2, 8).toUpperCase();
+  saveState(state);
+  const text = encodeURIComponent(
+    `وكالة جامعة البطانة للسفر والسياحة\nتمت الموافقة على طلب استعادة الحساب.\nكلمة المرور المؤقتة: ${r.tempPassword}`
+  );
+  window.open(`https://wa.me/${normalizePhone(r.phone)}?text=${text}`, '_blank');
+  return true;
 }
 
 /* ---------- إدارة الحجوزات ---------- */
-function genBookingCode() { return "BTN-" + Math.random().toString(16).slice(2, 12).toUpperCase(); }
-
 function getBookings() { return state.bookings || []; }
 
 function addBooking({ kind, title, details, price, email }) {
@@ -397,36 +399,7 @@ function updateBookingStatus(code, status) {
 
 function cancelBookingByCode(code) { return updateBookingStatus(code, 'ملغاة'); }
 
-function addRecoveryRequest(name, phone, email) {
-  state.recovery = state.recovery || [];
-  state.recovery.push({ name, phone, email, status: 'قيد المراجعة', created_at: new Date().toISOString() });
-  saveState(state);
-  return true;
-}
-
-function approveRecovery(index) {
-  const r = (state.recovery || [])[index];
-  if (!r) return false;
-  r.status = 'مقبول';
-  r.tempPassword = 'TEMP-' + Math.random().toString(36).slice(2, 8).toUpperCase();
-  saveState(state);
-  const text = encodeURIComponent(
-    `وكالة جامعة البطانة للسفر والسياحة\nتمت الموافقة على طلب استعادة الحساب.\nكلمة المرور المؤقتة: ${r.tempPassword}`
-  );
-  window.open(`https://wa.me/${normalizePhone(r.phone)}?text=${text}`, '_blank');
-  return true;
-}
-
-function nightsBetween(inDate, outDate) {
-  const ms = new Date(outDate) - new Date(inDate);
-  return Math.max(1, Math.round(ms / 86400000));
-}
-
-/* ---------- العناصر المشتركة ---------- */
-function footerNote() {
-  return `<div class="footer-note">وكالة جامعة البطانة للسفر والسياحة — رحلتك تبدأ من هنا</div>`;
-}
-
+/* ---------- دوال شريط التنقل ---------- */
 function navbarLoggedIn() {
   const s = getSession();
   const username = s ? s.username : '';
@@ -465,7 +438,7 @@ function navbarGuest() {
   </div>`;
 }
 
-/* ---------- دوال العرض (الصفحات) ---------- */
+/* ---------- صفحات المصادقة ---------- */
 function renderLogin() {
   return `
   ${navbarGuest()}
@@ -497,7 +470,7 @@ function renderLogin() {
       </p>
     </div>
   </div>
-  <div class="footer-note" id="footerText">وكالة جامعة البطانة للسفر والسياحة — رحلتك تبدأ من هنا</div>`;
+  ${footerNote()}`;
 }
 
 function handleLogin(e) {
@@ -546,7 +519,7 @@ function renderRegister() {
       </p>
     </div>
   </div>
-  <div class="footer-note" id="footerText">وكالة جامعة البطانة للسفر والسياحة — رحلتك تبدأ من هنا</div>`;
+  ${footerNote()}`;
 }
 
 function handleRegister(e) {
@@ -592,7 +565,7 @@ function renderRecovery() {
       </p>
     </div>
   </div>
-  <div class="footer-note">وكالة جامعة البطانة للسفر والسياحة — رحلتك تبدأ من هنا</div>`;
+  ${footerNote()}`;
 }
 
 function handleRecovery(e) {
@@ -613,18 +586,7 @@ function handleRecovery(e) {
   return false;
 }
 
-/* ---------- دوال الرحلات ---------- */
-function tripRow(t, kindKey) {
-  return `<div class="flight-row">
-    <div>
-      <div class="route">${t.route}</div>
-      <div class="subtitle">${t.subtitle}</div>
-    </div>
-    <div class="price">${t.price.toLocaleString('en-US')} ج.س</div>
-    <a class="btn small" href="#/select-class?kind=${kindKey}">اختيار الدرجة</a>
-  </div>`;
-}
-
+/* ---------- صفحات الرحلات ---------- */
 function renderHome() {
   return `
   ${navbarLoggedIn()}
@@ -803,57 +765,7 @@ function renderIntlBoatCompany(coId) {
   ${footerNote()}`;
 }
 
-/* ---------- دوال اختيار الدرجة ---------- */
-let scSelected = { name: '', price: 0 };
-
-function renderSelectClass(kindKeyRaw) {
-  const kindKey = SELECT_CLASS_DATA[kindKeyRaw] ? kindKeyRaw : 'local-flight';
-  const d = SELECT_CLASS_DATA[kindKey];
-  const optsHtml = d.classes.map(c => `
-    <div class="class-opt" onclick="scChoose('${c.name.replace(/'/g, "\\'")}', ${c.price})">
-      <h3>${c.name}</h3>
-      <div class="price">${c.price.toLocaleString('en-US')} ج.س</div>
-    </div>`).join('');
-  return `
-  ${navbarLoggedIn()}
-  <div class="wrap">
-    <h1>اختيار الدرجة</h1>
-    <div class="card">
-      <h3>${d.title}</h3>
-      <p class="subtitle">${d.subtitle}</p>
-      <div class="class-grid">${optsHtml}</div>
-      <div id="confirmBox" style="display:none; margin-top:20px">
-        <p class="subtitle">الدرجة المختارة: <b id="chosenClass" style="color:var(--gold-soft)"></b> — <span class="price" id="chosenPrice"></span></p>
-        <button class="btn" onclick="scConfirm('${kindKey}')" id="confirmBtn">${d.confirmLabel}</button>
-        <div class="flash error" id="bookFlash" style="display:none; margin-top:10px"></div>
-      </div>
-    </div>
-  </div>
-  ${footerNote()}`;
-}
-
-function scChoose(name, price) {
-  scSelected = { name, price };
-  document.getElementById('chosenClass').textContent = name;
-  document.getElementById('chosenPrice').textContent = price.toLocaleString('en-US') + ' ج.س';
-  document.getElementById('confirmBox').style.display = 'block';
-}
-
-function scConfirm(kindKey) {
-  const d = SELECT_CLASS_DATA[kindKey];
-  const btn = document.getElementById('confirmBtn');
-  btn.disabled = true;
-  btn.textContent = 'جارٍ الحجز...';
-  const code = addBooking({
-    kind: d.kind,
-    title: d.bookTitlePrefix + scSelected.name,
-    details: d.bookDetails,
-    price: scSelected.price
-  });
-  location.hash = '#/booking-detail?code=' + encodeURIComponent(code);
-}
-
-/* ---------- دوال الفنادق ---------- */
+/* ---------- صفحات الفنادق ---------- */
 function hotelsGrid(scope) {
   const entries = Object.entries(HOTELS).filter(([id, h]) => h.scope === scope);
   return `<div class="grid">` + entries.map(([id, h]) => `
@@ -985,7 +897,57 @@ function handleBook(e) {
   return false;
 }
 
-/* ---------- دوال الحجوزات ---------- */
+/* ---------- صفحة اختيار الدرجة ---------- */
+let scSelected = { name: '', price: 0 };
+
+function renderSelectClass(kindKeyRaw) {
+  const kindKey = SELECT_CLASS_DATA[kindKeyRaw] ? kindKeyRaw : 'local-flight';
+  const d = SELECT_CLASS_DATA[kindKey];
+  const optsHtml = d.classes.map(c => `
+    <div class="class-opt" onclick="scChoose('${c.name.replace(/'/g, "\\'")}', ${c.price})">
+      <h3>${c.name}</h3>
+      <div class="price">${c.price.toLocaleString('en-US')} ج.س</div>
+    </div>`).join('');
+  return `
+  ${navbarLoggedIn()}
+  <div class="wrap">
+    <h1>اختيار الدرجة</h1>
+    <div class="card">
+      <h3>${d.title}</h3>
+      <p class="subtitle">${d.subtitle}</p>
+      <div class="class-grid">${optsHtml}</div>
+      <div id="confirmBox" style="display:none; margin-top:20px">
+        <p class="subtitle">الدرجة المختارة: <b id="chosenClass" style="color:var(--gold-soft)"></b> — <span class="price" id="chosenPrice"></span></p>
+        <button class="btn" onclick="scConfirm('${kindKey}')" id="confirmBtn">${d.confirmLabel}</button>
+        <div class="flash error" id="bookFlash" style="display:none; margin-top:10px"></div>
+      </div>
+    </div>
+  </div>
+  ${footerNote()}`;
+}
+
+function scChoose(name, price) {
+  scSelected = { name, price };
+  document.getElementById('chosenClass').textContent = name;
+  document.getElementById('chosenPrice').textContent = price.toLocaleString('en-US') + ' ج.س';
+  document.getElementById('confirmBox').style.display = 'block';
+}
+
+function scConfirm(kindKey) {
+  const d = SELECT_CLASS_DATA[kindKey];
+  const btn = document.getElementById('confirmBtn');
+  btn.disabled = true;
+  btn.textContent = 'جارٍ الحجز...';
+  const code = addBooking({
+    kind: d.kind,
+    title: d.bookTitlePrefix + scSelected.name,
+    details: d.bookDetails,
+    price: scSelected.price
+  });
+  location.hash = '#/booking-detail?code=' + encodeURIComponent(code);
+}
+
+/* ---------- صفحات الحجوزات ---------- */
 function renderMyBookings() {
   return `
   ${navbarLoggedIn()}
@@ -1148,18 +1110,18 @@ function renderAdmin() {
 function adminApproveBooking(code) {
   if (!confirm('تأكيد الموافقة على هذا الحجز؟')) return;
   updateBookingStatus(code, 'مقبول');
-  renderAdmin();
+  router();
 }
 
 function adminRejectBooking(code) {
   if (!confirm('تأكيد رفض هذا الحجز؟')) return;
   updateBookingStatus(code, 'مرفوض');
-  renderAdmin();
+  router();
 }
 
 function adminApproveRecovery(index) {
   approveRecovery(index);
-  renderAdmin();
+  router();
 }
 
 /* ---------- التوجيه (Router) ---------- */
@@ -1183,56 +1145,51 @@ function router() {
   }
 
   switch (path) {
-    case '/login':
-      app.innerHTML = renderLogin(); break;
-    case '/register':
-      app.innerHTML = renderRegister(); break;
-    case '/recovery':
-      app.innerHTML = renderRecovery(); break;
-    case '/home':
-      app.innerHTML = renderHome(); break;
-    case '/local-type':
-      app.innerHTML = renderLocalType(); break;
-    case '/local-land':
-      app.innerHTML = renderLocalLand(); break;
-    case '/local-air':
-      app.innerHTML = renderLocalAir(); break;
-    case '/local-air-flights':
-      app.innerHTML = renderLocalAirFlights(params.get('airline')); break;
-    case '/intl-type':
-      app.innerHTML = renderIntlType(); break;
-    case '/intl-land':
-      app.innerHTML = renderIntlLand(); break;
-    case '/intl-bus-company':
-      app.innerHTML = renderIntlBusCompany(params.get('co')); break;
-    case '/intl-air':
-      app.innerHTML = renderIntlAir(); break;
-    case '/intl-air-flights':
-      app.innerHTML = renderIntlAirFlights(params.get('airline')); break;
-    case '/intl-sea':
-      app.innerHTML = renderIntlSea(); break;
-    case '/intl-boat-company':
-      app.innerHTML = renderIntlBoatCompany(params.get('co')); break;
-    case '/hotels':
-      app.innerHTML = renderHotels(); break;
-    case '/select-class':
-      app.innerHTML = renderSelectClass(params.get('kind')); break;
-    case '/my-bookings':
-      app.innerHTML = renderMyBookings(); refreshMyBookingsList(); break;
-    case '/booking-detail':
-      app.innerHTML = renderBookingDetail(params.get('code')); refreshBookingDetail(params.get('code')); break;
-    case '/hotel-rooms':
-      app.innerHTML = renderHotelRooms(params.get('hotel') || DEFAULT_HOTEL_ID); break;
-    case '/book-room':
-      app.innerHTML = renderBookRoom(params.get('hotel') || DEFAULT_HOTEL_ID, params.get('room')); afterRenderBookRoom(); break;
-    case '/admin':
-      app.innerHTML = renderAdmin(); break;
-    default:
-      location.hash = '#/login';
-      return;
+    case '/login': app.innerHTML = renderLogin(); break;
+    case '/register': app.innerHTML = renderRegister(); break;
+    case '/recovery': app.innerHTML = renderRecovery(); break;
+    case '/home': app.innerHTML = renderHome(); break;
+    case '/local-type': app.innerHTML = renderLocalType(); break;
+    case '/local-land': app.innerHTML = renderLocalLand(); break;
+    case '/local-air': app.innerHTML = renderLocalAir(); break;
+    case '/local-air-flights': app.innerHTML = renderLocalAirFlights(params.get('airline')); break;
+    case '/intl-type': app.innerHTML = renderIntlType(); break;
+    case '/intl-land': app.innerHTML = renderIntlLand(); break;
+    case '/intl-bus-company': app.innerHTML = renderIntlBusCompany(params.get('co')); break;
+    case '/intl-air': app.innerHTML = renderIntlAir(); break;
+    case '/intl-air-flights': app.innerHTML = renderIntlAirFlights(params.get('airline')); break;
+    case '/intl-sea': app.innerHTML = renderIntlSea(); break;
+    case '/intl-boat-company': app.innerHTML = renderIntlBoatCompany(params.get('co')); break;
+    case '/hotels': app.innerHTML = renderHotels(); break;
+    case '/select-class': app.innerHTML = renderSelectClass(params.get('kind')); break;
+    case '/my-bookings': app.innerHTML = renderMyBookings(); refreshMyBookingsList(); break;
+    case '/booking-detail': app.innerHTML = renderBookingDetail(params.get('code')); refreshBookingDetail(params.get('code')); break;
+    case '/hotel-rooms': app.innerHTML = renderHotelRooms(params.get('hotel') || DEFAULT_HOTEL_ID); break;
+    case '/book-room': app.innerHTML = renderBookRoom(params.get('hotel') || DEFAULT_HOTEL_ID, params.get('room')); afterRenderBookRoom(); break;
+    case '/admin': app.innerHTML = renderAdmin(); break;
+    default: location.hash = '#/login'; return;
   }
   window.scrollTo(0, 0);
 }
 
+/* ---------- جعل الدوال متاحة في النطاق العمومي ---------- */
+window.setTheme = setTheme;
+window.setLang = setLang;
+window.doLogout = doLogout;
+window.scChoose = scChoose;
+window.scConfirm = scConfirm;
+window.localLandShowTab = localLandShowTab;
+window.hotelsShowScope = hotelsShowScope;
+window.cancelBooking = cancelBooking;
+window.cancelBookingDetail = cancelBookingDetail;
+window.adminApproveBooking = adminApproveBooking;
+window.adminRejectBooking = adminRejectBooking;
+window.adminApproveRecovery = adminApproveRecovery;
+window.handleBook = handleBook;
+window.handleLogin = handleLogin;
+window.handleRegister = handleRegister;
+window.handleRecovery = handleRecovery;
+
+/* ---------- تشغيل التطبيق ---------- */
 window.addEventListener('hashchange', router);
 window.addEventListener('DOMContentLoaded', router);
