@@ -67,9 +67,10 @@ h1, h2, h3 { color: var(--gold-soft); margin-top: 0; }
 .btn.secondary { background: transparent; border: 1px solid var(--gold); color: var(--gold-soft); }
 .btn.danger { background: linear-gradient(135deg, #c94a41, #8f2f29); color: #fff; }
 .btn.small { padding: 7px 14px; font-size: .82rem; }
+.btn.success { background: linear-gradient(135deg, #198754, #0d6e3d); color: #fff; }
 label { display: block; margin: 12px 0 6px; font-size: .88rem; color: var(--muted); }
 input[type=text], input[type=email], input[type=password], input[type=tel],
-input[type=date], input[type=file], select {
+input[type=date], input[type=time], input[type=file], select {
   width: 100%; padding: 11px 13px; border-radius: 10px; border: 1px solid var(--input-border);
   background: var(--input-bg); color: var(--text); font-size: .95rem; font-family: inherit;
 }
@@ -102,12 +103,14 @@ input:focus, select:focus { outline: 1px solid var(--gold); }
   display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: .75rem;
   background: rgba(212,175,55,.15); color: var(--gold-soft); border: 1px solid var(--border);
 }
+.badge.ok { color: #5cc98a; border-color: #5cc98a; }
+.badge.cancel { color: #e0645a; border-color: #e0645a; }
+.badge.pending { color: #f0a030; border-color: #f0a030; }
 .stars { color: var(--gold-soft); letter-spacing: 2px; }
 .price { font-weight: 800; color: var(--ok); font-size: 1.05rem; }
 table { width: 100%; border-collapse: collapse; }
 table th, table td { padding: 10px; border-bottom: 1px solid var(--border); text-align: right; font-size: .9rem; }
-.search-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
-.search-bar input, .search-bar select { flex: 1; min-width: 150px; }
+table th { color: var(--gold-soft); }
 .class-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 12px; }
 .class-opt {
   border: 1px solid var(--border); border-radius: 12px; padding: 16px; text-align: center; background: #0d1729;
@@ -115,8 +118,7 @@ table th, table td { padding: 10px; border-bottom: 1px solid var(--border); text
 }
 .class-opt h3 { margin: 6px 0; font-size: 1rem; }
 .footer-note { color: var(--muted); font-size: .78rem; text-align: center; margin-top: 30px; }
-
-/* إطار مضيء للنماذج */
+.stat { font-size: 2.2rem; font-weight: 800; color: var(--gold-soft); }
 .glow-form {
   box-shadow: 0 0 20px var(--glow-color), 0 0 60px rgba(212,175,55,0.15);
   border-color: var(--glow-color);
@@ -126,7 +128,6 @@ table th, table td { padding: 10px; border-bottom: 1px solid var(--border); text
   box-shadow: 0 0 30px var(--glow-color), 0 0 80px rgba(212,175,55,0.2);
 }
 
-/* الوضع الليلي */
 body.theme-dark {
   --bg1: #0a1a2b;
   --bg2: #0d2840;
@@ -166,7 +167,4 @@ body.theme-dark .lang-btn, body.theme-dark .theme-btn { border-color: #2a5a7a; }
 body.theme-dark .lang-btn:hover, body.theme-dark .theme-btn:hover { background: #4a9fc9; color: #fff; }
 body.theme-dark .glow-form { box-shadow: 0 0 20px var(--glow-color), 0 0 60px rgba(107,184,224,0.15); }
 body.theme-dark .glow-form:hover { box-shadow: 0 0 30px var(--glow-color), 0 0 80px rgba(107,184,224,0.2); }
-
-/* شارة الحالة */
-.badge.ok { color: #5cc98a; border-color: #5cc98a; }
-.badge.cancel { color: #e0645a; border-color: #e0645a; }
+body.theme-dark .btn.success { background: linear-gradient(135deg, #2d8f5e, #1a6d44); color: #fff; }
